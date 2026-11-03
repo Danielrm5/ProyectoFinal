@@ -1,6 +1,11 @@
 # Proyecto de Infraestructura Tecnológica: Distributions-líder
 
-## Índice
-1. [1a. Presentación de la empresa](PresentacionArchivos/2.md)
-2. [1b. Organización y contexto de la empresa](PresentacionArchivos/3.md)
-3. [1c. Análisis de las necesidades tecnológicas](PresentacionArchivos/4.md)
+## 1a. Presentación de la empresa
+
+Distributions-líder es una pequeña empresa dedicada a la distribución y reparación de equipos microinformáticos, destacando por su gran flexibilidad, optatividad de sistemas operativos y la creación de optimizaciones y configuraciones propias.
+
+La empresa se encuentra ubicada en el polígono PIBO, una zona que concentra mayormente a medianas y pequeñas empresas, contando con una excelente ubicación para la comunicación e interconexión con clientes y proveedores. Sus principales clientes son pequeñas y medianas empresas: desde tiendas de informática que buscan la reventa de equipos, hasta negocios de hostelería que requieren configuraciones específicas para facilitar el trabajo de sus empleados, o medianas empresas que demandan servidores y equipos para digitalizar y administrar sus sistemas.
+
+Sus instalaciones se distribuyen en un edificio de dos plantas donde se ubican los diferentes departamentos, además de contar con un sótano destinado a las tareas de almacén para guardar los productos.
+
+![mapa.jpeg](/img/mapa.jpeg)
