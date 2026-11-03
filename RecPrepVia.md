@@ -1,3 +1,38 @@
-1. [Necesidad](RecPrepViaArchivos/1.md)
-2. [Recursos Necesarios](RecPrepViaArchivos/2.md)
-3. [Presupuesto y Viabilidad Económica](RecPrepViaArchivos/3.md)
+## 11. Recursos y viabilidad económica
+
+El presente apartado detalla el dimensionamiento físico, humano y financiero requerido para llevar a producción la infraestructura proyectada para la empresa **Distributions-Líder**, dedicada a la distribución y reparación de equipos informáticos para pymes y ubicada en el Parque Industrial y de Servicios del Aljarafe (Polígono PIBO, en Bollullos de la Mitación, Sevilla). Aunque la validación técnica se realiza mediante virtualización, el presupuesto responde a una instalación física real distribuida en el edificio de la compañía (sótano, planta baja y primera planta) para dar servicio a sus 20 empleados (repartidos en Montaje y Reparaciones, Almacén y Logística, Administración, y Marketing) y a sus 2 administradores técnicos.
+
+### 11.1. Descripción y justificación de los recursos necesarios
+
+#### Servidores físicos y respaldo eléctrico
+
+* **Nodos de virtualización (Clúster Principal)**: Dos servidores en formato rack 2U equipados cada uno con procesador AMD EPYC / Intel Xeon de 24 núcleos, 128 GB de memoria RAM DDR5 ECC registrada, dos discos SSD NVMe Enterprise de 960 GB en RAID 1 para el hipervisor, cuatro discos SSD NVMe U.3 de 3,84 TB en RAID 10 para alojar las máquinas virtuales y contenedores, fuente de alimentación redundante y tarjeta de red dual 10GbE SFP+.
+* **Almacenamiento local y servidor de despliegue (NAS / Repositorio PXE)**: Una cabina NAS en formato rack de 4 bahías equipada con 4 discos duros Enterprise de 8 TB en RAID 5 (24 TB útiles) e interfaz 10GbE, destinada a almacenar copias de seguridad locales rápidas, imágenes ISO para el despliegue por red (PXE) del departamento de Montaje y Reparaciones, y carpetas compartidas de facturación e inventario.
+* **Sistema de Alimentación Ininterrumpida (SAI)**: Una unidad SAI Online de doble conversión en rack de 3000 VA / 2700 W ubicada en el cuarto de comunicaciones del sótano para estabilizar la corriente y proteger los servidores frente a cortes eléctricos.
+
+**Justificación**: La arquitectura diseñada contempla una alta densidad de servicios simultáneos distribuidos en cuatro subredes (VLAN 10 DMZ con Rancher y Nginx Proxy Manager; VLAN 20 Interna con LDAP y automatización; VLAN 30 con el stack pesado de Zabbix, OpenSearch y T-Pot; y VLAN 40 con MariaDB). En particular, el indexador SIEM **OpenSearch** (192.168.30.20), el honeypot **T-Pot** (192.168.30.30) y el clúster **Rancher** (192.168.10.20) demandan un elevado volumen de memoria RAM, cómputo e IOPS de disco. Contar con dos nodos de 128 GB de RAM permite repartir esta carga de forma holgada y garantizar alta disponibilidad (HA) si un servidor falla. Por su parte, la conectividad a 10 Gbps entre los nodos y el NAS evita cuellos de botella cuando el taller de Montaje instala sistemas operativos en múltiples equipos simultáneamente por red (PXE).
+
+#### Infraestructura de red y cableado estructurado
+
+* **Cortafuegos perimetral dedicado (OPNsense Shield)**: Un appliance hardware en formato rack con 6 puertos 2.5GbE y 2 puertos 10GbE SFP+ para ejecutar **OPNsense (Shield)**, actuando como núcleo de segmentación entre las puertas de enlace de cada red (`192.168.10.1`, `192.168.20.1`, `192.168.30.1` y `192.168.40.1`), servidor VPN seguro e interfaz hacia AWS Backup.
+* **Conmutación distribuida por plantas**: Tres switches gestionables L2/L3 de 24 puertos Gigabit Ethernet y 4 puertos SFP+ de 10 Gbps (uno por planta: sótano, planta baja y primera planta) para propagar las VLANs 10, 20, 30 y 40, más un switch adicional de 16 puertos Gigabit en el banco de trabajo del departamento de Montaje y Reparaciones para la conexión masiva de equipos en pruebas y arranque PXE.
+* **Cobertura inalámbrica corporativa**: Tres puntos de acceso Wi-Fi 6 empresariales alimentados por PoE (uno por planta, reforzando la zona de Almacén y Logística para el uso de lectores de inventario y terminales móviles).
+* **Armarios rack y cableado estructurado**: Un armario rack principal de 42U en el sótano (CPD) y dos armarios murales de 12U para las plantas superiores, unidos mediante enlaces troncales verticales (*backbone*) de fibra óptica multimodo OM4, junto con cableado horizontal Cat 6A libre de halógenos (LSZH), paneles de parcheo y 48 tomas de red dobles (para los 22 puestos fijos y las bancadas de reparación).
+* **Conectividad WAN**: Línea de fibra óptica empresarial simétrica de 1 Gbps con IP pública estática (`198.51.100.45`) contratada con un operador con cobertura en el Polígono PIBO.
+
+**Justificación**: Tal como establece el planteamiento del proyecto, los 20 equipos de los empleados y las 2 estaciones de los administradores técnicos (`192.168.20.30`) ya existen y se reutilizan íntegramente. La división del edificio en dos plantas y sótano exige descentralizar la conmutación con un switch por nivel unido por fibra óptica para evitar tiradas de cobre excesivas y garantizar velocidad de 10 Gbps desde el taller de reparaciones hasta los servidores de imágenes ISO y bases de datos. Aislar físicamente el cortafuegos OPNsense en un appliance dedicado asegura que el tráfico entre las VLANs y el cifrado de la VPN no penalicen el procesador de los servidores de aplicaciones.
+
+#### Software, licencias y servicios cloud
+
+* **Plataforma de virtualización y sistemas base**: Hipervisor Proxmox VE con suscripción básica anual para los dos nodos físicos, ejecutando distribuciones Linux de código abierto (Debian / Ubuntu Server) sin coste de licencia.
+* **Pila de aplicaciones y ciberseguridad (Open Source)**: Despliegue sin coste de licenciamiento de **OPNsense** (cortafuegos y VPN), **Rancher** (`192.168.10.20`) para orquestación de contenedores del portal web de ventas y seguimiento, **Nginx Proxy Manager** (`192.168.10.30`), **OpenLDAP** (`192.168.20.20`), **MariaDB** (`192.168.40.10`), **Zabbix** (`192.168.30.10`), **OpenSearch** (`192.168.30.20`) y **T-Pot** (`192.168.30.30`).
+* **Servicios Cloud (Amazon Web Services) y Dominio**: Suscripción anual a **AWS S3 con alta redundancia** e integración mediante **AWS Backup** para el respaldo externo automatizado y cifrado de las bases de datos de facturación, inventarios y configuraciones críticas (estimado en 3 TB de almacenamiento y transferencia), más el registro anual del dominio público para el portal de clientes.
+
+**Justificación**: El diseño aprovecha herramientas de software libre de nivel empresarial para cubrir los 12 requisitos tecnológicos sin incurrir en costes de licencias por usuario (CAL) o por núcleo. La única partida recurrente de servicios digitales se destina a la nube de Amazon (**AWS S3 / AWS Backup**) y al soporte estable del hipervisor, garantizando que, ante un incendio, robo o fallo catastrófico en la nave del Polígono PIBO, Distributions-Líder pueda restaurar sus facturas, inventarios y portal web desde AWS en cuestión de minutos.
+
+#### Personal técnico de implantación
+
+* **Ingeniero de Sistemas y Ciberseguridad (90 horas)**: Encargado de configurar el clúster de virtualización, implementar las reglas de segmentación en OPNsense, desplegar Rancher, Nginx Proxy Manager, MariaDB y LDAP, automatizar el servidor PXE y los scripts de administración, y poner en marcha el SIEM OpenSearch, Zabbix, T-Pot y la conexión con AWS S3.
+* **Técnico Instalador de Telecomunicaciones (60 horas)**: Responsable del montaje de los tres armarios rack en el sótano y las dos plantas, tendido de fibra vertical entre plantas, cableado de las tomas de los cuatro departamentos y del taller de montaje, y certificación de la red.
+
+**Justificación**: Aunque la plantilla cuenta con 2 administradores técnicos que asumirán el mantenimiento diario una vez entregada la infraestructura, la envergadura del despliegue inicial (cableado de tres niveles y configuración desde cero de cuatro VLANs con SIEM, honeypot y orquestador de contenedores) requiere apoyo externo especializado durante tres semanas para no paralizar el soporte técnico ordinario de la empresa.
