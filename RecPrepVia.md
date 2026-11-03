@@ -28,6 +28,31 @@ El presente apartado detalla el dimensionamiento físico, humano y financiero re
 * **Pila de aplicaciones y ciberseguridad (Open Source)**: Despliegue sin coste de licenciamiento de **OPNsense** (cortafuegos y VPN), **Rancher** (`192.168.10.20`) para orquestación de contenedores del portal web de ventas y seguimiento, **Nginx Proxy Manager** (`192.168.10.30`), **OpenLDAP** (`192.168.20.20`), **MariaDB** (`192.168.40.10`), **Zabbix** (`192.168.30.10`), **OpenSearch** (`192.168.30.20`) y **T-Pot** (`192.168.30.30`).
 * **Servicios Cloud (Amazon Web Services) y Dominio**: Suscripción anual a **AWS S3 con alta redundancia** e integración mediante **AWS Backup** para el respaldo externo automatizado y cifrado de las bases de datos de facturación, inventarios y configuraciones críticas (estimado en 3 TB de almacenamiento y transferencia), más el registro anual del dominio público para el portal de clientes.
 
+### 11.2. Presupuesto económico de implantación
+
+A continuación se detalla el presupuesto estimado con precios de mercado actuales para la puesta en marcha de la infraestructura en el edificio de Distributions-Líder:
+
+| Categoría | Concepto | Cant. | Precio Unit. (€) | Coste Total (€) |
+| :--- | :--- | :---: | :---: | :---: |
+| **Servidores** | Servidor Rack 2U 24C, 128 GB RAM ECC, NVMe RAID, 10GbE | 2 | 3.850,00 | 7.700,00 |
+| **Almacenamiento** | Cabina NAS Rack 4 bahías (32 TB brutos / 24 TB RAID 5) 10GbE | 1 | 1.350,00 | 1.350,00 |
+| **Protección** | SAI Online Doble Conversión Rack 3000 VA | 1 | 890,00 | 890,00 |
+| **Red y Firewall** | Appliance Hardware Rack OPNsense (6x 2.5GbE + 2x SFP+) | 1 | 720,00 | 720,00 |
+| **Red Planta** | Switch Gestionable L2/L3 24p GbE (PoE+) + 4 SFP+ 10G | 3 | 440,00 | 1.320,00 |
+| **Red Taller** | Switch Gestionable 16p GbE para bancada PXE / Montaje | 1 | 190,00 | 190,00 |
+| **Wi-Fi** | Punto de Acceso Wi-Fi 6 PoE Empresarial (Sótano y 2 plantas) | 3 | 155,00 | 465,00 |
+| **Racks y Cable** | Rack 42U (sótano), 2 Racks 12U (plantas), PDU y bandejas | 1 | 1.120,00 | 1.120,00 |
+| **Racks y Cable** | Enlace fibra OM4 entre plantas, cable Cat 6A LSZH y 48 tomas | 1 | 1.380,00 | 1.380,00 |
+| **Software** | Suscripción anual Proxmox VE Community (por nodo físico) | 2 | 355,00 | 710,00 |
+| **Cloud AWS** | Servicio anual AWS S3 Alta Redundancia + AWS Backup + Dominio | 1 | 840,00 | 840,00 |
+| **Conectividad** | Fibra empresarial simétrica 1 Gbps con IP fija (anual) | 1 | 660,00 | 660,00 |
+| **Personal** | Horas de Ingeniero de Sistemas y Ciberseguridad | 90 | 45,00 | 4.050,00 |
+| **Personal** | Horas de Técnico Instalador de Telecomunicaciones | 60 | 30,00 | 1.800,00 |
+| **Subtotal** | **Base Imponible (sin impuestos)** | — | — | **23.195,00** |
+| **Impuestos** | **IVA aplicable (21 %)** | — | — | **4.870,95** |
+| **Total** | **Presupuesto Total de Implantación** | — | — | **28.065,95** |
+
+
 **Justificación**: El diseño aprovecha herramientas de software libre de nivel empresarial para cubrir los 12 requisitos tecnológicos sin incurrir en costes de licencias por usuario (CAL) o por núcleo. La única partida recurrente de servicios digitales se destina a la nube de Amazon (**AWS S3 / AWS Backup**) y al soporte estable del hipervisor, garantizando que, ante un incendio, robo o fallo catastrófico en la nave del Polígono PIBO, Distributions-Líder pueda restaurar sus facturas, inventarios y portal web desde AWS en cuestión de minutos.
 
 #### Personal técnico de implantación
