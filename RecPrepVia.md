@@ -1,8 +1,8 @@
-## 11. Recursos y viabilidad económica
+## 1. Recursos y viabilidad económica
 
 Aunque el diseño técnico se valide mediante virtualización, llevar este proyecto al día a día de **Distributions-Líder** exige dimensionar los equipos físicos, el cableado y el trabajo humano necesarios para cubrir el edificio del Polígono PIBO (sótano, 1.ª y 2.ª planta) y dar servicio a sus 20 empleados y 2 administradores técnicos.
 
-### 11.1. Descripción y justificación de los recursos necesarios
+### 1.1. Descripción y justificación de los recursos necesarios
 
 #### Servidores físicos y respaldo eléctrico
 
@@ -37,7 +37,7 @@ Aunque el diseño técnico se valide mediante virtualización, llevar este proye
 
 **Justificación:** Aunque los 2 administradores en plantilla llevarán el mantenimiento diario una vez entregada la red, levantar desde cero el cableado de tres plantas y toda la arquitectura de seguridad requiere apoyo externo durante unas tres semanas. De este modo, el equipo interno no desatiende el soporte cotidiano de la empresa durante la transición.
 
-### 11.2. Presupuesto económico de implantación
+### 1.2. Presupuesto económico de implantación
 
 A continuación se detalla el presupuesto estimado a precios actuales de mercado:
 
@@ -61,7 +61,7 @@ A continuación se detalla el presupuesto estimado a precios actuales de mercado
 | **Impuestos** | **IVA aplicable (21 %)** | — | — | **4.870,95** |
 | **Total** | **Presupuesto Total de Implantación** | — | — | **28.065,95** |
 
-### 11.3. Financiación y viabilidad económica
+### 1.3. Financiación y viabilidad económica
 
 #### Propuesta de financiación
 
