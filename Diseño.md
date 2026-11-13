@@ -1,64 +1,62 @@
-# Diseño de la infraestructura
+# 1. Necesidad
 
-# 1.- Necesidad
-
-La empresa Distributions-Líder, ubicada en el polígono PIBO y dedicada a la distribución y reparación de equipos informáticos para pymes, requiere una infraestructura de red segura e interconectada para su edificio de dos plantas y sótano. Con una plantilla de 20 empleados distribuidos en cuatro departamentos (Montaje y Reparaciones, Almacén y Logística, Administración, y Marketing) más 2 administradores técnicos, existe la necesidad crítica de compartir información de forma fluida (inventarios, facturas, ISOs) y, al mismo tiempo, ofrecer un portal web externo para clientes. 
-
-Basado en el diseño topológico planteado, la necesidad se resuelve mediante una arquitectura segmentada por un firewall central (OPNsense) que cumple con los 12 requisitos tecnológicos de la empresa, destacando la separación estricta entre la red interna corporativa (donde se prueban equipos y se maneja la facturación) y la DMZ (accesible desde Internet para el portal de ventas y seguimiento). Además, el diseño garantiza la continuidad del negocio mediante copias de seguridad externas en la nube (AWS), permite la automatización para el despliegue de sistemas operativos por red (PXE) en el área de montaje, y establece un control de accesos centralizado para proteger la información departamental confidencial.
-
-![Imagen Diagrama](/img/diagrama.jpg)
+La empresa **Distributions-Líder**, ubicada en el polígono PIBO y dedicada a la distribución y reparación de equipos informáticos para pymes, requiere una infraestructura de red segura para su edificio de dos plantas y sótano. Con 20 empleados distribuidos en cuatro departamentos (Montaje y Reparaciones, Almacén y Logística, Administración y Marketing) y 2 administradores técnicos, necesita compartir recursos internos de forma fluida (inventarios, facturas, ISOs), automatizar despliegues por red (PXE) y ofrecer un portal web externo para clientes respaldado mediante copias de seguridad en la nube.
 
 # 2. Trabajo práctico
 
 ## 2.1. Propuesta de infraestructura
 
-A partir de las necesidades específicas de Distributions-Líder, la infraestructura se organiza de la siguiente manera:
+La infraestructura se segmenta mediante un firewall central (**OPNsense**) en cuatro zonas lógicas:
 
 *   **Redes o zonas (VLANs):**
-    *   **VLAN 10 DMZ:** Aloja el portal web público separado de la red principal para evitar infecciones derivadas de los múltiples dispositivos del área de reparaciones.
-    *   **VLAN 20 INTERNA:** Conecta a los empleados del sótano (Almacén), primera planta (Montaje) y segunda planta (Admin/Marketing), permitiendo compartir el inventario y los manuales técnicos de forma fluida.
-    *   **VLAN 30 MONITOREO:** Red aislada para controlar el estado de los servidores y garantizar la disponibilidad del portal web de clientes.
-    *   **VLAN 40 BASE DE DATOS:** Aislamiento estricto para proteger los datos de facturación e inventario corporativo.
+    *   **VLAN 10 DMZ:** Aloja y aísla el portal web público frente a la red interna.
+    *   **VLAN 20 INTERNA:** Conecta a los empleados y administradores para compartir recursos corporativos.
+    *   **VLAN 30 MONITOREO Y SEGURIDAD:** Red aislada para supervisar la disponibilidad y seguridad de los servidores.
+    *   **VLAN 40 BASE DE DATOS:** Aislamiento estricto para proteger los datos corporativos y del portal web.
+
 *   **Servidores y servicios principales:**
-    *   **Rancher y Nginx Proxy Manager (DMZ):** Gestionan y exponen de forma segura el portal para que las pymes clientes puedan comprar equipos o consultar el estado de sus incidencias.
-    *   **LDAP (Directorio):** Controla de forma centralizada qué empleados tienen acceso a la facturación (Administración), a las redes (Marketing) o al software de despliegue (Montaje).
-    *   **Servidor de Almacenamiento/Automatización (Scripts):** Ejerce de repositorio centralizado para ISOs, manuales de reparación y automatiza las instalaciones de SO por red (PXE) para agilizar el trabajo en Montaje.
-    *   **MariaDB:** Base de datos general que respalda las operaciones del portal web.
-    *   **Stack de Monitoreo (Zabbix, OpenSearch, T-Pot):** Controla el hardware, analiza logs y protege la red mediante señuelos (honeypot) contra ataques.
+    *   **Rancher y Nginx Proxy Manager (VLAN 10):** Orquestan contenedores
+    *   **Estaciones de trabajo y Scripts de automatización (VLAN 20):** Equipos de usuario y repositorio central para ISOs, manuales y despliegue de sistemas operativos por red (PXE).
+    *   **Stack de Monitoreo - Zabbix, OpenSearch y T-Pot (VLAN 30):** Supervisa el estado de la red, centraliza el análisis de logs (SIEM) y detecta ataques mediante señuelos (*honeypot*).
+    *   **MariaDB (VLAN 40):** Base de datos general que respalda el portal web, la facturación y el inventario.
+
 *   **Dispositivos de red:**
-    *   **OPNsense (Shield):** Firewall perimetral e inter-VLAN que protege los sistemas, filtra el tráfico y proporciona asignación IP dinámica (DHCP) para los equipos de los empleados y los dispositivos rotativos de la zona de reparaciones.
-    *   **Router WAN:** Conexión principal a Internet e interconexión con los servicios de AWS.
-*   **Ubicación de equipos:** Los equipos de usuario se distribuyen físicamente entre el sótano (4 empleados), la 1ª planta (8 empleados) y la 2ª planta (8 empleados). Los 2 administradores técnicos operan la infraestructura desde la VLAN 20.
-*   **Accesibilidad desde Internet:** Únicamente el portal web de clientes a través de Nginx y el puerto VPN seguro gestionado por OPNsense.
-*   **Integración VPN:** Permite el teletrabajo a los empleados de oficina y facilita la gestión remota de servidores a los administradores de sistemas.
-*   **Servicios Cloud:** Conexión a AWS S3 para externalizar copias de seguridad de las configuraciones de los clientes, inventario y contabilidad.
-*   **Justificación:** Esta segmentación cumple estrictamente con el análisis de necesidades tecnológicas: aísla los equipos de prueba de la red principal, centraliza el almacenamiento departamental, asegura la base de datos y automatiza tareas rutinarias (PXE) sin comprometer la seguridad.
+    *   **OPNsense (Shield):** Firewall perimetral e inter-VLAN que filtra el tráfico, asigna IPs dinámicas (DHCP), gestiona el túnel VPN y conecta la interfaz de backup hacia AWS.
+    *   **Router WAN:** Enlace principal entre el firewall OPNsense e Internet.
+    *   **Switch virtual:** Conmutador lógico en la DMZ para interconectar Rancher y Nginx Proxy Manager.
+
+*   **Operativa y accesibilidad:**
+    *   **Ubicación física:** Sótano (4 empleados de Almacén), 1.ª planta (8 empleados de Montaje) y 2.ª planta (8 empleados de Administración y Marketing), junto con 2 administradores técnicos operando en la VLAN 20.
+    *   **Accesibilidad externa y VPN:** Desde Internet solo son accesibles el portal web (vía Nginx) y la VPN segura en OPNsense para teletrabajo y administración remota.
+    *   **Servicios Cloud (AWS S3):** Almacenamiento externo de alta redundancia conectado a OPNsense para copias de seguridad.
 
 ## 2.2. Diagrama de la infraestructura
 
-El diagrama de red diseñado representa fielmente la solución tecnológica para Distributions-Líder. Muestra el acceso a Internet y el túnel VPN terminando directamente en el firewall OPNsense, el cual segmenta de forma segura el tráfico hacia las cuatro zonas (DMZ, Interna, Monitoreo y Base de Datos). Se visualiza la ubicación lógica de los servidores (Nginx, Rancher, LDAP, MariaDB y el stack de seguridad), las estaciones de trabajo de los distintos departamentos y la integración hacia AWS Cloud para garantizar la redundancia del inventario y la contabilidad.
+El siguiente esquema representa la topología lógica, el direccionamiento y las conexiones entre las cuatro VLANs, el firewall OPNsense, Internet y AWS Cloud:
+
+![Imagen Diagrama](/img/diagrama.jpg)
 
 ## 2.3. Plan de direccionamiento IPv4
 
-Direccionamiento base de las redes definidas para los distintos departamentos:
+Direccionamiento base de las redes definidas:
 
-| Red/Zona | Dirección de red | Máscara | Gateway | Observaciones |
+| Red / Zona | Dirección de red | Máscara | Gateway | Observaciones |
 | :--- | :--- | :--- | :--- | :--- |
-| VLAN 10 DMZ | 192.168.10.0 | 255.255.255.0 (/24) | 192.168.10.1 | Exposición del portal web para pymes clientes. |
-| VLAN 20 INTERNA | 192.168.20.0 | 255.255.255.0 (/24) | 192.168.20.1 | Interconexión de Montaje, Almacén, Admin y Marketing. |
-| VLAN 30 MONITOREO | 192.168.30.0 | 255.255.255.0 (/24) | 192.168.30.1 | Supervisión de infraestructura para evitar caídas. |
-| VLAN 40 BD | 192.168.40.0 | 255.255.255.0 (/24) | 192.168.40.1 | Aislamiento de facturación y datos de clientes. |
+| **VLAN 10 DMZ** | 192.168.10.0 | 255.255.255.0 (/24) | 192.168.10.1 | Portal web público para clientes. |
+| **VLAN 20 INTERNA** | 192.168.20.0 | 255.255.255.0 (/24) | 192.168.20.1 | Gestión de usuarios y departamentos. |
+| **VLAN 30 MONITOREO** | 192.168.30.0 | 255.255.255.0 (/24) | 192.168.30.1 | Supervisión y seguridad de red. |
+| **VLAN 40 BD** | 192.168.40.0 | 255.255.255.0 (/24) | 192.168.40.1 | Aislamiento de base de datos general. |
 
-Identificación de los dispositivos de infraestructura con dirección IP fija:
+Dispositivos de infraestructura y servidores con dirección IP fija:
 
-| Dispositivo/servidor | Red/zona | Dirección IP/Máscara | Gateway | Observaciones |
+| Dispositivo / Servidor | Red / Zona | Dirección IP / Máscara | Gateway | Observaciones |
 | :--- | :--- | :--- | :--- | :--- |
-| OPNsense (Shield) | Todas | 192.168.x.1 /24 | IP del ISP | Proporciona DHCP a los equipos de la zona de reparaciones. |
-| Rancher | VLAN 10 | 192.168.10.20 /24 | 192.168.10.1 | Orquestador del portal de ventas. |
-| Nginx Proxy Manager | VLAN 10 | 192.168.10.30 /24 | 192.168.10.1 | Proxy expuesto hacia Internet. |
-| LDAP (Directorio) | VLAN 20 | 192.168.20.20 /24 | 192.168.20.1 | Controla los permisos por departamento. |
-| Servidor de Scripts/Almacén | VLAN 20 | 192.168.20.30 /24 | 192.168.20.1 | Automatización PXE e ISOs para el área de Montaje. |
-| Zabbix | VLAN 30 | 192.168.30.10 /24 | 192.168.30.1 | Controla el estado general de los servidores. |
-| OpenSearch | VLAN 30 | 192.168.30.20 /24 | 192.168.30.1 | Gestión y centralización de logs. |
-| T-Pot | VLAN 30 | 192.168.30.30 /24 | 192.168.30.1 | Honeypot para detección temprana de ataques. |
-| MariaDB | VLAN 40 | 192.168.40.10 /24 | 192.168.40.1 | Almacena los datos críticos y configuraciones. |
+| **OPNsense (Shield)** | Todas | 192.168.x.1 /24 | 198.51.100.45 | Firewall central, DHCP, VPN y enlace AWS Backup. |
+| **Rancher** | VLAN 10 | 192.168.10.20 /24 | 192.168.10.1 | Orquestador del portal web. |
+| **Nginx Proxy Manager** | VLAN 10 | 192.168.10.30 /24 | 192.168.10.1 | Proxy inverso expuesto a Internet. |
+| **LDAP (Directorio)** | VLAN 20 | 192.168.20.20 /24 | 192.168.20.1 | Control de permisos departamentales. |
+| **Estaciones / Scripts** | VLAN 20 | 192.168.20.30 /24 | 192.168.20.1 | Equipos de usuario y automatización (PXE / ISOs). |
+| **Zabbix** | VLAN 30 | 192.168.30.10 /24 | 192.168.30.1 | Monitoreo de estado de la red. |
+| **OpenSearch** | VLAN 30 | 192.168.30.20 /24 | 192.168.30.1 | Centralización y análisis de logs (SIEM). |
+| **T-Pot** | VLAN 30 | 192.168.30.30 /24 | 192.168.30.1 | Honeypot para detección de ataques. |
+| **MariaDB** | VLAN 40 | 192.168.40.10 /24 | 192.168.40.1 | Base de datos general (portal y corporativa). |
