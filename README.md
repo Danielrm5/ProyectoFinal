@@ -1,5 +1,7 @@
 # Proyecto Final — Infraestructura de Red para Distributions-Líder
 
+**Autor (GitHub):** [Danielrm5](https://github.com/Danielrm5)
+
 Documentación del proyecto de diseño y presupuesto de infraestructura para **Distributions-Líder** (Polígono PIBO).
 
 ## Índice

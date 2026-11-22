@@ -1,45 +1,21 @@
 # 3. Recursos, Presupuesto y Viabilidad Económica
 
-Aunque el diseño técnico se valide mediante virtualización, llevar este proyecto al día a día de **Distributions-Líder** exige dimensionar los equipos físicos, el cableado y el trabajo humano necesarios para cubrir el edificio del Polígono PIBO (sótano, 1.ª y 2.ª planta) y dar servicio a sus 20 empleados y 2 administradores técnicos.
+Llevar este diseño a la práctica en el edificio de **Distributions-Líder** (sótano, 1.ª y 2.ª planta, con 20 empleados y 2 administradores) requiere dimensionar el hardware, el cableado y el trabajo de implantación a precios reales.
 
 ## 11.1. Descripción y justificación de los recursos necesarios
 
-### Servidores físicos y respaldo eléctrico
+* **Servidores, almacenamiento y protección (Sótano):**
+  * **2 Nodos de virtualización (Clúster Proxmox HA):** Dos servidores rack 2U (24 núcleos, 128 GB RAM ECC, 2 NVMe 960 GB RAID 1 para sistema, 4 NVMe 3,84 TB RAID 10 para VMs, fuente redundante y red 10GbE SFP+).
+  * **Cabina NAS (24 TB útiles RAID 5, 10GbE):** Almacenamiento local rápido para copias, carpetas e ISOs PXE.
+  * **SAI Online Rack (3000 VA) y Climatización Split Inverter:** Protegen el cuarto de servidores frente a cortes eléctricos y evitan el sobrecalentamiento 24/7.
+  * *Justificación:* Las 8 máquinas virtuales (repartidas 4 en el Nodo 1 para web/LDAP/MariaDB y 4 en el Nodo 2 para PXE/Zabbix/OpenSearch/T-Pot) suman ~30 vCPUs y ~90 GB de RAM. Con dos servidores de 128 GB hay holgura total y alta disponibilidad (si uno cae, el otro asume todo). El enlace 10GbE al NAS permite instalar varios PCs por PXE sin cuellos de botella.
 
-* **Nodos de virtualización (Clúster Principal):** Dos servidores rack 2U con procesador AMD EPYC / Intel Xeon (24 núcleos), 128 GB de RAM DDR5 ECC, 2 SSD NVMe de 960 GB (RAID 1 para el hipervisor), 4 SSD NVMe U.3 de 3,84 TB (RAID 10 para máquinas virtuales y contenedores), fuente redundante y red dual 10GbE SFP+.
-* **Almacenamiento local (NAS / Repositorio PXE):** Cabina NAS rack de 4 bahías con 4 discos Enterprise de 8 TB en RAID 5 (24 TB útiles) e interfaz 10GbE para copias locales rápidas, carpetas departamentales e imágenes ISO.
-* **Sistema de Alimentación Ininterrumpida (SAI) y climatización:** Unidad SAI Online de doble conversión en rack (3000 VA / 2700 W) y equipo de aire acondicionado Split Inverter dedicado en el cuarto de comunicaciones del sótano para proteger los servidores frente a cortes eléctricos y evitar el sobrecalentamiento 24/7.
-
-**Justificación:** Aunque en el esquema lógico figuran 8 servidores, físicamente solo se adquieren **2 servidores en rack** sobre los que se virtualizan los 8 servicios en máquinas separadas por seguridad (repartiendo en el **Nodo 1** la web con Rancher/Nginx, OpenLDAP y MariaDB, y en el **Nodo 2** el servidor PXE del taller junto a Zabbix, OpenSearch y T-Pot). En conjunto suman unas 30 vCPUs y cerca de 90 GB de RAM, por lo que contar con dos nodos de 24 núcleos y 128 GB cada uno permite trabajar con holgura y garantiza alta disponibilidad (HA): si uno de los dos equipos físicos falla, el otro asume las 8 máquinas virtuales por sí solo. Además, el enlace de 10 Gbps con el NAS evita cuellos de botella cuando el taller de Montaje instala sistemas operativos por red (PXE) en varios ordenadores a la vez.
-
-### Infraestructura de red y cableado estructurado
-
-* **Cortafuegos perimetral dedicado (OPNsense Shield):** Appliance hardware en rack (6 puertos 2.5GbE y 2 SFP+ 10GbE) que gestiona la segmentación inter-VLAN, DHCP/DNS, el servidor VPN y el enlace con AWS Backup.
-* **Conmutación por plantas y ópticas 10G:** Tres switches gestionables L2/L3 de 24 puertos GbE PoE+ y 4 puertos SFP+ 10G (uno en sótano, 1.ª planta y 2.ª planta) más un switch de 16 puertos GbE en la bancada de Montaje, acompañados de sus módulos transceptores ópticos SFP+ 10GBase-SR (para la fibra entre plantas) y cables DAC SFP+ 10G (para unir servidores, NAS y firewall dentro del rack).
-* **Cobertura Wi-Fi corporativa:** Tres puntos de acceso Wi-Fi 6 PoE empresariales (uno por nivel, dando prioridad a los lectores de inventario del almacén).
-* **Armarios rack, parcheo y cableado:** Un rack principal de 42U en el sótano y dos murales de 12U en las plantas superiores con sus paneles de parcheo, bandejas de fibra y regletas PDU, unidos por fibra óptica multimodo OM4, canalización, cableado Cat 6A LSZH, 48 tomas dobles y latiguillos RJ45 para puestos y taller.
-* **Conectividad WAN:** Fibra óptica empresarial simétrica de 1 Gbps con IP pública fija.
-
-**Justificación:** Los 20 ordenadores de la plantilla y las 2 estaciones de los administradores se reutilizan por completo. Al tratarse de un edificio de tres niveles, colocar un switch por planta unido por fibra óptica ahorra tiradas innecesarias de cobre y mantiene una velocidad de 10 Gbps hacia el taller. Por su parte, dedicar un equipo físico exclusivo para **OPNsense** asegura que el filtrado de tráfico y el cifrado VPN no resten potencia a los servidores principales.
-
-### Software, licencias y servicios cloud
-
-* **Virtualización y sistemas base:** Hipervisor Proxmox VE con suscripción básica anual para los dos nodos, sobre distribuciones Linux (Debian / Ubuntu Server) sin coste de licencia.
-* **Aplicaciones y seguridad (Open Source):** Despliegue sin coste en licencias de **OPNsense**, **Rancher**, **Nginx Proxy Manager**, **OpenLDAP**, **MariaDB**, **Zabbix**, **OpenSearch** y **T-Pot**.
-* **Servicios Cloud y dominio:** Suscripción anual a **AWS S3** (alta redundancia) integrada con **AWS Backup** para respaldar unos 3 TB de facturación, inventario y configuraciones críticas, además del dominio web público.
-
-**Justificación:** Apostar por software libre de nivel empresarial permite cubrir todos los requisitos técnicos sin atar a la empresa al pago anual de licencias por usuario o por núcleo. El gasto recurrente se concentra donde realmente aporta tranquilidad: el soporte del hipervisor y la nube de Amazon, garantizando que, ante cualquier imprevisto grave en la nave, el negocio pueda recuperar sus datos en minutos.
-
-### Personal técnico de implantación
-
-* **Ingeniero de Sistemas y Ciberseguridad (90 horas):** Configuración del clúster, reglas de OPNsense, despliegue de contenedores y bases de datos, automatización PXE, puesta en marcha del SIEM/monitoreo e integración con AWS.
-* **Técnico Instalador de Telecomunicaciones (60 horas):** Montaje de armarios rack, tendido de fibra entre plantas, cableado de tomas y certificación de la red.
-
-**Justificación:** Aunque los 2 administradores en plantilla llevarán el mantenimiento diario una vez entregada la red, levantar desde cero el cableado de tres plantas y toda la arquitectura de seguridad requiere apoyo externo durante unas tres semanas. De este modo, el equipo interno no desatiende el soporte cotidiano de la empresa durante la transición.
+* **Red, cableado estructurado, software y personal:**
+  * **Firewall y Switches:** Appliance físico **OPNsense** en rack (6x 2.5GbE + 2x SFP+ 10G), **3 switches L2/L3 24p PoE+ con 4 SFP+ 10G** (uno por planta), **1 switch 16p GbE** para la bancada del taller, **3 puntos Wi-Fi 6 PoE** y un lote de **8 transceptores SFP+ fibra y 6 cables DAC 10G**.
+  * **Racks, cableado y WAN:** Rack 42U en sótano y dos murales de 12U en plantas con paneles de parcheo, fibra óptica OM4 entre plantas, cable Cat 6A LSZH, canalización, 48 tomas dobles, latiguillos RJ45 y fibra simétrica de 1 Gbps con IP fija.
+  * **Software y Personal:** Se reutilizan los 22 PCs actuales y se emplea software Open Source sin coste de licencias (OPNsense, Proxmox, Linux, Rancher, Nginx, OpenLDAP, MariaDB, Zabbix, OpenSearch y T-Pot), pagando solo soporte básico de Proxmox y el respaldo en **AWS S3 / AWS Backup**. Para el despliegue inicial de tres semanas se contratan **90 h de Ingeniero de Sistemas** y **60 h de Técnico Instalador**, dejando después el mantenimiento diario a los 2 administradores en plantilla.
 
 ## 11.2. Presupuesto económico de implantación
-
-A continuación se detalla el presupuesto estimado a precios actuales de mercado:
 
 | Categoría | Concepto | Cant. | Precio Unit. (€) | Coste Total (€) |
 | :--- | :--- | :---: | :---: | :---: |
@@ -65,19 +41,9 @@ A continuación se detalla el presupuesto estimado a precios actuales de mercado
 
 ## 11.3. Financiación y viabilidad económica
 
-### Propuesta de financiación
+* **Propuesta de financiación mixta:**
+  1. **Renting tecnológico a 36 meses para el equipamiento electrónico (13.055,00 € + IVA):** Cubre servidores, NAS, SAI, firewall, switches, Wi-Fi y enlaces 10G por una cuota de **418 €/mes** (19 €/mes por trabajador), con seguro incluido y 100 % deducible en el Impuesto sobre Sociedades.
+  2. **Fondos propios para instalación y servicios anuales (11.750,00 € + IVA):** Cubre climatización, racks, cableado, mano de obra y el primer año de AWS, fibra y soporte sin pagar intereses bancarios.
+  3. **Ayudas públicas:** Solicitud de incentivos de digitalización y ciberseguridad para pymes de la Junta de Andalucía (Agencia TRADE) o línea ICO Empresas.
 
-Para no restar liquidez a la compra habitual de stock informático y componentes, se plantea un modelo de **financiación mixta**:
-
-1. **Renting tecnológico para el equipamiento electrónico (13.055,00 € + IVA):** Los servidores, el NAS, el SAI, el firewall, los switches, los puntos Wi-Fi y la electrónica de enlace 10G se financian mediante *renting* a 36 meses. Supone una cuota cómoda de unos **418 €/mes** (unos 19 € al mes por trabajador), incluye seguro frente a averías, facilita renovar el hardware a los tres años y es 100 % deducible en el Impuesto sobre Sociedades.
-2. **Fondos propios para instalación, adecuación y servicios anuales (11.750,00 € + IVA):** La climatización del cuarto de servidores, el cableado y canalización, los armarios rack, la mano de obra de implantación y el primer año de AWS, fibra y soporte se abonan con tesorería propia, evitando pagar intereses por obra o servicios anuales.
-3. **Ayudas públicas y líneas bonificadas:** Al ser una pyme de 22 trabajadores ubicada en el Polígono PIBO (Bollullos de la Mitación), la empresa puede solicitar los incentivos de digitalización y ciberseguridad de la Junta de Andalucía (Agencia TRADE) o apoyarse en una línea ICO Empresas.
-
-### Valoración de la viabilidad económica
-
-Una inversión de **24.805,00 € más IVA** resulta muy equilibrada y rentable para el volumen de negocio de **Distributions-Líder** por cuatro motivos prácticos:
-
-* **Ahorro real en licencias:** Montar esta misma arquitectura con software propietario (licencias de Windows Server Datacenter, 22 CALs de Active Directory, un SIEM comercial como Splunk y un firewall de pago con suscripción anual) dispararía el presupuesto por encima de los 45.000 €. El enfoque Open Source recorta la factura a la mitad sin perder prestaciones.
-* **Aprovechamiento de lo que ya funciona:** Se conservan todos los puestos de trabajo actuales y no hace falta contratar un mantenimiento mensual externo, ya que los 2 administradores de la casa asumirán la gestión diaria.
-* **Impacto directo en el taller y en las ventas:** El despliegue automático por red (PXE) ahorra horas de trabajo manual al preparar o reparar equipos de clientes, mientras que el nuevo portal web abre un escaparate de venta y consulta de incidencias operativo las 24 horas.
-* **Blindaje frente a paradas del negocio:** En un taller por el que pasan ordenadores de terceros potencialmente infectados, aislar las redes con OPNsense, vigilar el tráfico con Zabbix, OpenSearch y T-Pot, y respaldar los datos críticos en **AWS S3** evita que un incidente de seguridad paralice la facturación de la empresa.
+* **Valoración de la viabilidad económica:** La inversión de **24.805,00 € + IVA** es totalmente asumible y rentable para la empresa: **(1)** ahorra más de 20.000 € en licencias frente a alternativas propietarias (Windows Server, CALs o Splunk); **(2)** reutiliza los 22 ordenadores existentes y evita pagar mantenimiento externo gracias a los 2 administradores propios; **(3)** el despliegue PXE ahorra horas diarias en el taller y el portal web abre ventas 24/7; y **(4)** el aislamiento por VLANs y las copias en **AWS S3** evitan que un virus en el taller paralice la facturación.
