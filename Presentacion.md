@@ -6,9 +6,7 @@ Distributions-líder es una pequeña empresa dedicada a la distribución y repar
 
 La empresa se encuentra ubicada en el polígono PIBO, una zona que concentra mayormente a medianas y pequeñas empresas, contando con una excelente ubicación para la comunicación e interconexión con clientes y proveedores. Sus principales clientes son pequeñas y medianas empresas: desde tiendas de informática que buscan la reventa de equipos, hasta negocios de hostelería que requieren configuraciones específicas para facilitar el trabajo de sus empleados, o medianas empresas que demandan servidores y equipos para digitalizar y administrar sus sistemas.
 
-Sus instalaciones se distribuyen en un edificio de dos plantas donde se ubican los diferentes departamentos, además de contar con un sótano destinado a las tareas de almacén para guardar los productos.
-
-![mapa.jpeg](/img/mapa.jpeg)
+Sus instalaciones se distribuyen en un edificio de dos plantas donde se ubican los diferentes departamentos, además de contar con un sótano destinado a las tareas de almacén para guardar los productos. La finalidad de este proyecto es diseñar e implantar una infraestructura de red segmentada, segura y de alta disponibilidad que conecte las tres plantas del edificio, centralice la gestión de usuarios y recursos internos, automatice el taller de montaje mediante despliegue por red (PXE) y publique de forma segura un nuevo portal web para clientes respaldado en la nube.
 
 ## 1b. Organización y contexto de la empresa
 
